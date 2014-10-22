@@ -1,4 +1,2 @@
-removed_sources:
-  u-boot-2011.09.tar.bz2: 9cd450c74f7c572df3b28701e641b03b42393d10
 sources:
-  u-boot-2013.01.tar.bz2: 01ab2f41efcd8dcf6049ae4faa234bf6fa9bb4fb
+  u-boot-2014.10.tar.bz2: 243a36acc69fc5645eca4166e5162914c5d995d9
