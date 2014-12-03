@@ -48,6 +48,7 @@ u-boot bootloader binaries for armv7 boards
 
 %prep
 %setup -q -n u-boot-%{version}
+%apply_patches
 
 %build
 %ifarch aarch64
