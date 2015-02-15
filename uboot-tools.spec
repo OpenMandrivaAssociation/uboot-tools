@@ -11,6 +11,8 @@ Source0:	ftp://ftp.denx.de/pub/u-boot/u-boot-%{version}.tar.bz2
 Provides:	uboot-mkimage = %{EVRD}
 Source1:	uEnv.txt
 
+BuildRequires:	openssl-devel
+
 Patch1:		0001-make-sure-that-the-filesystem-is-a-type-of-fat.patch
 Patch2:		0002-Allow-checking-in-multiple-partitions-for-scan_dev_f.patch
 Patch3:		0003-Allow-overriding-boot_partitions-default-value-by-se.patch
