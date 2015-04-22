@@ -30,6 +30,7 @@ Patch12:	0012-beagle-board-use-ext-support-in-the-SPL.patch
 Patch13:	0013-WANDBOARD-run-the-dsitro-bootcmd-first-before-fallin.patch
 Patch14:	0014-BBB-tell-u-boot-to-look-in-the-first-partition-to-lo.patch
 Patch15:	0001-omap4-distro-boot-partition-fixup.patch
+Patch17:	u-boot-2015.04-wandboard-sata-boot.patch
 
 %description
 This package contains a few U-Boot utilities - mkimage for creating boot images
