@@ -1,36 +1,21 @@
 %define debug_package %nil
 
 Name:		uboot-tools
-Version:	2015.04
-Release:	3
+Version:	2016.01
+Release:	1
 Summary:	U-Boot utilities
 Group:		System/Kernel and hardware
 License:	GPLv2
 URL:		http://www.denx.de/wiki/U-Boot
-Source0:	ftp://ftp.denx.de/pub/u-boot/u-boot-%{version}.tar.bz2
+Source0:	ftp://ftp.denx.de/pub/u-boot/u-boot-%{version}-rc3.tar.bz2
 Provides:	uboot-mkimage = %{EVRD}
 Source1:	uEnv.txt
 
 BuildRequires:	openssl-devel dtc bc netpbm
 Requires:	dtc
 
-
-Patch1:		0001-make-sure-that-the-filesystem-is-a-type-of-fat.patch
-Patch2:		0002-Add-BOOTENV_POST_COMMAND-which-is-appended-to-the-en.patch
-Patch3:		0003-Only-set-CONFIG_BOOTDELAY-if-not-already-set.patch
-Patch4:		0004-Switch-am335x_evm.h-to-use-config_distro_defaults-an.patch
-Patch5:		0005-add-back-adding-console-to-the-bootargs-if-not-prese.patch
-Patch6:		0006-wandboard-port-to-generic-distro-booting.patch
-Patch7:		0007-Switch-omap4-boards-to-use-config_distro_defaults-an.patch
-Patch8:		0008-port-utilite-to-distro-generic-boot-commands.patch
-Patch9:		0009-RiOT-board-set-console-speed.patch
-Patch10:	0010-Add-support-for-loading-environment-from-uEnv.txt-in.patch
-Patch11:	0011-Add-BOOTENV_INIT_COMMAND-for-commands-that-may-be-ne.patch
-Patch12:	0012-beagle-board-use-ext-support-in-the-SPL.patch
-Patch13:	0013-WANDBOARD-run-the-dsitro-bootcmd-first-before-fallin.patch
-Patch14:	0014-BBB-tell-u-boot-to-look-in-the-first-partition-to-lo.patch
-Patch15:	0001-omap4-distro-boot-partition-fixup.patch
-Patch17:	u-boot-2015.04-wandboard-sata-boot.patch
+Patch4:		0004-Add-BOOTENV_INIT_COMMAND-for-commands-that-may-be-ne.patch
+Patch5:		0005-port-utilite-to-distro-generic-boot-commands.patch
 
 %description
 This package contains a few U-Boot utilities - mkimage for creating boot images
@@ -55,7 +40,7 @@ u-boot bootloader binaries for armv7 boards
 %endif
 
 %prep
-%setup -q -n u-boot-%{version}
+%setup -q -n u-boot-%{version}-rc3
 %apply_patches
 
 %build
