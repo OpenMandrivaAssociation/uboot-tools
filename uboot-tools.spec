@@ -1,13 +1,13 @@
 %define debug_package %nil
 
 Name:		uboot-tools
-Version:	2016.01
+Version:	2017.09
 Release:	1
 Summary:	U-Boot utilities
 Group:		System/Kernel and hardware
 License:	GPLv2
 URL:		http://www.denx.de/wiki/U-Boot
-Source0:	ftp://ftp.denx.de/pub/u-boot/u-boot-%{version}-rc3.tar.bz2
+Source0:	ftp://ftp.denx.de/pub/u-boot/u-boot-%{version}.tar.bz2
 Provides:	uboot-mkimage = %{EVRD}
 Source1:	uEnv.txt
 
@@ -40,7 +40,7 @@ u-boot bootloader binaries for armv7 boards
 %endif
 
 %prep
-%setup -q -n u-boot-%{version}-rc3
+%setup -q -n u-boot-%{version}
 %apply_patches
 
 %build
