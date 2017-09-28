@@ -21,7 +21,7 @@ Patch5:		0005-port-utilite-to-distro-generic-boot-commands.patch
 This package contains a few U-Boot utilities - mkimage for creating boot images
 and fw_printenv/fw_setenv for manipulating the boot environment variables.
 
-%ifarch aarch64
+%if 0
 %package -n	uboot-images-armv8
 Summary:	u-boot bootloader images for armv8 boards
 Requires:	uboot-tools
@@ -44,7 +44,7 @@ u-boot bootloader binaries for armv7 boards
 %apply_patches
 
 %build
-%ifarch aarch64
+%if 0
 make vexpress_aemv8a_juno_config
 %%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
 cp -p u-boot.bin builds/u-boot.bin.vexpress_aemv8a_juno
@@ -258,7 +258,7 @@ make mrproper
 %endif
 
 %install
-%ifarch aarch64
+%if 0
 install -p -m644 builds/u-boot.bin.vexpress_aemv8a_juno -D %{buildroot}%{_datadir}/uboot/vexpress_aemv8a_juno/u-boot.bin
 %endif
 
@@ -343,7 +343,7 @@ install -p -m644 tools/env/fw_env.config -D %{buildroot}%{_sysconfdir}/fw_env.co
 %{_bindir}/mkenvimage
 %{_bindir}/dumpimage
 %{_mandir}/man1/mkimage.1*
-%ifarch %{arm} aarch64
+%ifarch %{arm}
 %dir %{_datadir}/uboot/
 %endif
 %ifarch %{arm}
@@ -352,7 +352,7 @@ install -p -m644 tools/env/fw_env.config -D %{buildroot}%{_sysconfdir}/fw_env.co
 %config(noreplace) %{_sysconfdir}/fw_env.config
 %endif
 
-%ifarch aarch64
+%if 0
 %files -n uboot-images-armv8
 %{_datadir}/uboot/vexpress_aemv8a_juno/
 %endif
