@@ -45,9 +45,9 @@ u-boot bootloader binaries for armv7 boards
 
 %build
 %ifarch aarch64
-make vexpress_aemv8a_config
+make vexpress_aemv8a_juno_config
 %%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot.bin builds/u-boot.bin.vexpress_aemv8a
+cp -p u-boot.bin builds/u-boot.bin.vexpress_aemv8a_juno
 make mrproper
 %endif
 
@@ -259,7 +259,7 @@ make mrproper
 
 %install
 %ifarch aarch64
-install -p -m644 builds/u-boot.bin.vexpress_aemv8a -D %{buildroot}%{_datadir}/uboot/vexpress_aemv8a/u-boot.bin
+install -p -m644 builds/u-boot.bin.vexpress_aemv8a_juno -D %{buildroot}%{_datadir}/uboot/vexpress_aemv8a_juno/u-boot.bin
 %endif
 
 %ifarch %{arm}
@@ -354,7 +354,7 @@ install -p -m644 tools/env/fw_env.config -D %{buildroot}%{_sysconfdir}/fw_env.co
 
 %ifarch aarch64
 %files -n uboot-images-armv8
-%{_datadir}/uboot/vexpress_aemv8a/
+%{_datadir}/uboot/vexpress_aemv8a_juno/
 %endif
 
 %ifarch %{arm}
