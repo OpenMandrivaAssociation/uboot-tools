@@ -2,7 +2,7 @@
 
 Name:		uboot-tools
 Version:	2017.09
-Release:	1
+Release:	2
 Summary:	U-Boot utilities
 Group:		System/Kernel and hardware
 License:	GPLv2
