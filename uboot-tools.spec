@@ -1,401 +1,251 @@
-%define debug_package %nil
+#global candidate rc4
 
-Name:		uboot-tools
-Version:	2017.09
-Release:	2
-Summary:	U-Boot utilities
-Group:		System/Kernel and hardware
-License:	GPLv2
-URL:		http://www.denx.de/wiki/U-Boot
-Source0:	ftp://ftp.denx.de/pub/u-boot/u-boot-%{version}.tar.bz2
-Provides:	uboot-mkimage = %{EVRD}
-Source1:	uEnv.txt
+Name:      uboot-tools
+Version:   2019.07
+Release:   3%{?candidate:.%{candidate}}%{?dist}
+Summary:   U-Boot utilities
+License:   GPLv2+ BSD LGPL-2.1+ LGPL-2.0+
+URL:       http://www.denx.de/wiki/U-Boot
 
-BuildRequires:	openssl-devel dtc bc netpbm
-Requires:	dtc
+Source0:   ftp://ftp.denx.de/pub/u-boot/u-boot-%{version}%{?candidate:-%{candidate}}.tar.bz2
+Source1:   arm-boards
+Source2:   arm-chromebooks
+Source3:   aarch64-boards
+Source4:   aarch64-chromebooks
+Source5:   10-devicetree.install
 
-Patch4:		0004-Add-BOOTENV_INIT_COMMAND-for-commands-that-may-be-ne.patch
-Patch5:		0005-port-utilite-to-distro-generic-boot-commands.patch
+# Fedoraisms patches
+# Needed to find DT on boot partition that's not the first partition
+Patch1:    uefi-distro-load-FDT-from-any-partition-on-boot-device.patch
+# Needed due to issues with shim
+# replace with omv
+Patch2:    uefi-use-Fedora-specific-path-name.patch
+
+# Board fixes and enablement
+Patch5:    usb-kbd-fixes.patch
+Patch6:    rpi-Enable-using-the-DT-provided-by-the-Raspberry-Pi.patch
+Patch7:    dragonboard-fixes.patch
+Patch8:    ARM-tegra-Add-NVIDIA-Jetson-Nano.patch
+Patch9:    arm-tegra-defaine-fdtfile-for-all-devices.patch
+Patch10:   rockchip-rk3399-Fix-USB3-support.patch
+Patch11:   rockchip-rock960.patch
+Patch12:   rock960-Enable-booting-from-eMMC-when-using-SPL.patch
+Patch13:   Raspberry-Pi-32-64-support.patch
+
+BuildRequires:  bc
+BuildRequires:  dtc
+BuildRequires:  make
+# Added for .el7 rebuild, so newer gcc is used
+BuildRequires:  gcc
+BuildRequires:  flex bison
+BuildRequires:  openssl-devel
+BuildRequires:  python2-devel
+BuildRequires:  python2-setuptools
+#BuildRequires:  python2-libfdt
+BuildRequires:  python2-pyelftools
+BuildRequires:  SDL2-devel
+BuildRequires:  swig
+%ifarch %{armx}
+BuildRequires:  vboot-utils
+%endif
+%ifarch aarch64
+BuildRequires:  arm-trusted-firmware-armv8
+%endif
+
+Requires:       dtc
+Requires:       systemd
+%ifarch aarch64 %{arm}
+Obsoletes:      uboot-images-elf < 2019.07
+Provides:       uboot-images-elf < 2019.07
+%endif
 
 %description
 This package contains a few U-Boot utilities - mkimage for creating boot images
 and fw_printenv/fw_setenv for manipulating the boot environment variables.
 
-%if 0
-%package -n	uboot-images-armv8
-Summary:	u-boot bootloader images for armv8 boards
-Requires:	uboot-tools
+%ifarch aarch64
+%package     -n uboot-images-armv8
+Summary:     u-boot bootloader images for aarch64 boards
+Requires:    uboot-tools
+BuildArch:   noarch
 
-%description -n	uboot-images-armv8
-u-boot bootloader binaries for the aarch64 vexpress_aemv8a
+%description -n uboot-images-armv8
+u-boot bootloader binaries for aarch64 boards
 %endif
 
 %ifarch %{arm}
-%package -n	uboot-images-armv7
-Summary:	u-boot bootloader images for armv7 boards
-Requires:	uboot-tools
+%package     -n uboot-images-armv7
+Summary:     u-boot bootloader images for armv7 boards
+Requires:    uboot-tools
+BuildArch:   noarch
 
 %description -n uboot-images-armv7
 u-boot bootloader binaries for armv7 boards
 %endif
 
 %prep
-%setup -q -n u-boot-%{version}
-%apply_patches
+%autosetup -p1 -n u-boot-%{version}%{?candidate:-%{candidate}}
+
+cp %SOURCE1 %SOURCE2 %SOURCE3 %SOURCE4 .
+
+sed -i 's/python/python2/' arch/arm/mach-rockchip/make_fit_atf.py
 
 %build
-%if 0
-make vexpress_aemv8a_juno_config
-%%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot.bin builds/u-boot.bin.vexpress_aemv8a_juno
-make mrproper
-%endif
+mkdir builds
 
-%ifarch %{arm}
-# AllWinner devices
-make Bananapi_defconfig
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot-sunxi-with-spl.bin builds/u-boot-sunxi-with-spl.bin.Bananapi
-make mrproper
-
-make Cubieboard_defconfig
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot-sunxi-with-spl.bin builds/u-boot-sunxi-with-spl.bin.Cubieboard
-make mrproper
-
-make Cubieboard2_defconfig
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot-sunxi-with-spl.bin builds/u-boot-sunxi-with-spl.bin.Cubieboard2
-make mrproper
-
-make Cubietruck_config
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot-sunxi-with-spl.bin builds/u-boot-sunxi-with-spl.bin.Cubietruck
-make mrproper
-
-make Mele_A1000G_defconfig
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot-sunxi-with-spl.bin builds/u-boot-sunxi-with-spl.bin.Mele_A1000G
-make mrproper
-
-make Mele_A1000_defconfig
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot-sunxi-with-spl.bin builds/u-boot-sunxi-with-spl.bin.Mele_A1000
-make mrproper
-
-make Mini-X_defconfig
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot-sunxi-with-spl.bin builds/u-boot-sunxi-with-spl.bin.Mini-X
-make mrproper
-
-make Mini-X-1Gb_defconfig
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot-sunxi-with-spl.bin builds/u-boot-sunxi-with-spl.bin.Mini-X-1Gb
-make mrproper
-
-make A10-OLinuXino-Lime_defconfig
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot-sunxi-with-spl.bin builds/u-boot-sunxi-with-spl.bin.A10-OLinuXino-Lime
-make mrproper
-
-make A10s-OLinuXino-M_defconfig
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot-sunxi-with-spl.bin builds/u-boot-sunxi-with-spl.bin.A10s-OLinuXino-M
-make mrproper
-
-make A13-OLinuXino_defconfig
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot-sunxi-with-spl.bin builds/u-boot-sunxi-with-spl.bin.A13-OLinuXino
-make mrproper
-
-make A13-OLinuXinoM_defconfig
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot-sunxi-with-spl.bin builds/u-boot-sunxi-with-spl.bin.A13-OLinuXinoM
-make mrproper
-
-make A20-OLinuXino_MICRO_defconfig
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot-sunxi-with-spl.bin builds/u-boot-sunxi-with-spl.bin.A20-OLinuXino_MICRO
-make mrproper
-
-# Calxeda
-make highbank_config
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot.bin builds/u-boot.bin.highbank
-make mrproper
-
-# Freescale i.MX6
-make cm_fx6_defconfig
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot.img builds/u-boot.img.cm_fx6
-cp -p SPL builds/SPL.cm_fx6
-make mrproper
-
-make riotboard_defconfig
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot.imx builds/u-boot.imx.riotboard
-make mrproper
-
-make udoo_quad_config
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot.imx builds/u-boot.imx.udoo_quad
-make mrproper
-
-make wandboard_dl_config
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot.imx builds/u-boot.imx.wandboard_dl
-make mrproper
-
-make wandboard_quad_config
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot.imx builds/u-boot.imx.wandboard_quad
-make mrproper
-
-make wandboard_solo_config
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot.imx builds/u-boot.imx.wandboard_solo
-make mrproper
-
-# NVidia Tegra devices
-make jetson-tk1_defconfig
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot-dtb-tegra.bin builds/u-boot-dtb-tegra.bin.jetson-tk1
-cp -p u-boot-nodtb-tegra.bin builds/u-boot-nodtb-tegra.bin.jetson-tk1
-cp -p u-boot.map builds/u-boot.map.jetson-tk1
-cp -p u-boot.dtb builds/u-boot.dtb.jetson-tk1
-make mrproper
-
-make paz00_config
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot-dtb-tegra.bin builds/u-boot-dtb-tegra.bin.paz00
-cp -p u-boot-nodtb-tegra.bin builds/u-boot-nodtb-tegra.bin.paz00
-cp -p u-boot.map builds/u-boot.map.paz00
-cp -p u-boot.dtb builds/u-boot.dtb.paz00
-make mrproper
-
-make trimslice_config
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot-dtb-tegra.bin builds/u-boot-dtb-tegra.bin.trimslice
-cp -p u-boot-nodtb-tegra.bin builds/u-boot-nodtb-tegra.bin.trimslice
-cp -p u-boot.map builds/u-boot.map.trimslice
-cp -p u-boot.dtb builds/u-boot.dtb.trimslice
-make mrproper
-
-# Samsung Exynos devices
-make arndale_config
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p spl/arndale-spl.bin builds/arndale-spl.bin.arndale
-cp -p u-boot-dtb.bin builds/u-boot-dtb.bin.arndale
-make mrproper
-
-make origen_config
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p spl/origen-spl.bin builds/origen-spl.bin.origen
-cp -p u-boot.bin builds/u-boot.bin.origen
-cp -p u-boot-dtb.bin builds/u-boot-dtb.bin.origen
-make mrproper
-
-make smdkv310_config
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p spl/smdkv310-spl.bin builds/smdkv310-spl.bin.smdkv310
-cp -p u-boot.bin builds/u-boot.bin.smdkv310
-make mrproper
-
-make snow_config
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot-dtb.bin builds/u-boot-dtb.bin.snow
-make mrproper
-
-# ST Erikson
-make snowball_config
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p u-boot.bin builds/u-boot.bin.snowball
-make mrproper
-
-# TI devices
-make am335x_evm_config
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p MLO builds/MLO.beaglebone
-cp -p u-boot.img builds/u-boot.img.beaglebone
-make mrproper
-
-make omap3_beagle_config
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p MLO builds/MLO.beagle
-cp -p u-boot.img builds/u-boot.img.beagle
-make mrproper
-
-make omap4_panda_config
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p MLO builds/MLO.panda
-cp -p u-boot.img builds/u-boot.img.panda
-make mrproper
-
-make omap5_uevm_config
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" V=1
-cp -p MLO builds/MLO.uevm
-cp -p u-boot.img builds/u-boot.img.uevm
-make mrproper
+%ifarch %{armx}
+for board in $(cat %{_arch}-boards)
+do
+  echo "Building board: $board"
+  mkdir builds/$(echo $board)/
+  # ATF selection, needs improving, suggestions of ATF SoC to Board matrix welcome
+  sun50i=(a64-olinuxino amarula_a64_relic bananapi_m2_plus_h5 bananapi_m64 libretech_all_h3_cc_h5 nanopi_a64 nanopi_neo2 nanopi_neo_plus2 orangepi_pc2 orangepi_prime orangepi_win orangepi_zero_plus orangepi_zero_plus2 pine64-lts pine64_plus pinebook sopine_baseboard teres_i)
+  if [[ " ${sun50i[*]} " == *" $board "* ]]; then
+    echo "Board: $board using sun50i_a64"
+    cp /usr/share/arm-trusted-firmware/sun50i_a64/* builds/$(echo $board)/
+  fi
+  sun50h6=(orangepi_lite2 orangepi_one_plus pine_h64)
+  if [[ " ${sun50h6[*]} " == *" $board "* ]]; then
+    echo "Board: $board using sun50i_h6"
+    cp /usr/share/arm-trusted-firmware/sun50i_h6/* builds/$(echo $board)/
+  fi
+  rk3328=(rock64-rk3328)
+  if [[ " ${rk3328[*]} " == *" $board "* ]]; then
+    echo "Board: $board using rk3328"
+    cp /usr/share/arm-trusted-firmware/rk3328/* builds/$(echo $board)/
+  fi
+  rk3399=(evb-rk3399 ficus-rk3399 firefly-rk3399 nanopc-t4-rk3399 nanopi-m4-rk3399 nanopi-neo4-rk3399 orangepi-rk3399 orangepi-rk3399 puma-rk3399 rock960-rk3399 rock-pi-4-rk3399 rockpro64-rk3399)
+  if [[ " ${rk3399[*]} " == *" $board "* ]]; then
+    echo "Board: $board using rk3399"
+    cp /usr/share/arm-trusted-firmware/rk3399/* builds/$(echo $board)/
+  fi
+  # End ATF
+  make $(echo $board)_defconfig O=builds/$(echo $board)/
+  make HOSTCC="gcc $RPM_OPT_FLAGS" CROSS_COMPILE="" %{?_smp_mflags} V=1 O=builds/$(echo $board)/
+  if [[ " ${rk3399[*]} " == *" $board "* ]]; then
+    echo "Board: $board using rk3399"
+    builds/$(echo $board)/tools/mkimage -n rk3399 -T rksd  -d builds/$(echo $board)/spl/u-boot-spl.bin builds/$(echo $board)/spl_sd.img
+    builds/$(echo $board)/tools/mkimage -n rk3399 -T rkspi -d builds/$(echo $board)/spl/u-boot-spl.bin builds/$(echo $board)/spl_spi.img
+  fi
+done
 
 %endif
 
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" defconfig V=1
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" silentoldconfig V=1
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" tools-only V=1
-
-%ifarch %{arm}
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" sheevaplug_config V=1
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" env V=1
-%endif
-
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" defconfig V=1
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" silentoldconfig V=1
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" tools-only V=1
-
-%ifarch %{arm}
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" sheevaplug_config V=1
-%make HOSTCC="gcc %{optflags}" CROSS_COMPILE="" env V=1
-%endif
+make HOSTCC="gcc $RPM_OPT_FLAGS" %{?_smp_mflags} CROSS_COMPILE="" tools-only_defconfig V=1 O=builds/
+make HOSTCC="gcc $RPM_OPT_FLAGS" %{?_smp_mflags} CROSS_COMPILE="" tools-all V=1 O=builds/
 
 %install
-%if 0
-install -p -m644 builds/u-boot.bin.vexpress_aemv8a_juno -D %{buildroot}%{_datadir}/uboot/vexpress_aemv8a_juno/u-boot.bin
+mkdir -p $RPM_BUILD_ROOT%{_bindir}
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
+mkdir -p $RPM_BUILD_ROOT%{_mandir}/man1
+mkdir -p $RPM_BUILD_ROOT%{_datadir}/uboot/
+
+%ifarch aarch64
+for board in $(cat %{_arch}-boards)
+do
+mkdir -p $RPM_BUILD_ROOT%{_datadir}/uboot/$(echo $board)/
+ for file in spl/*spl.bin u-boot.bin u-boot.dtb u-boot-dtb.img u-boot.img u-boot.itb spl/sunxi-spl.bin
+ do
+  if [ -f builds/$(echo $board)/$(echo $file) ]; then
+    install -p -m 0644 builds/$(echo $board)/$(echo $file) $RPM_BUILD_ROOT%{_datadir}/uboot/$(echo $board)/
+  fi
+ done
+done
 %endif
 
 %ifarch %{arm}
-# AllWinner
-for board in Bananapi Cubieboard Cubieboard2 Cubietruck Mele_A1000 Mele_A1000G Mini-X Mini-X-1Gb A10-OLinuXino-Lime A10s-OLinuXino-M A13-OLinuXino A13-OLinuXinoM A20-OLinuXino_MICRO
+for board in $(cat %{_arch}-boards)
 do
-install -p -m644 builds/u-boot-sunxi-with-spl.bin.$(echo $board) -D %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot-sunxi-with-spl.bin
+mkdir -p $RPM_BUILD_ROOT%{_datadir}/uboot/$(echo $board)/
+ for file in MLO SPL spl/arndale-spl.bin spl/origen-spl.bin spl/smdkv310-spl.bin spl/*spl.bin u-boot.bin u-boot.dtb u-boot-dtb-tegra.bin u-boot.img u-boot.imx u-boot-nodtb-tegra.bin u-boot-spl.kwb u-boot-sunxi-with-spl.bin
+ do
+  if [ -f builds/$(echo $board)/$(echo $file) ]; then
+    install -p -m 0644 builds/$(echo $board)/$(echo $file) $RPM_BUILD_ROOT%{_datadir}/uboot/$(echo $board)/
+  fi
+ done
+
 done
 
-# Calxeda
-install -p -m644 builds/u-boot.bin.highbank -D %{buildroot}%{_datadir}/uboot/highbank/u-boot.bin
-
-# FreeScale
-for board in cm_fx6
+# Bit of a hack to remove binaries we don't use as they're large
+for board in $(cat %{_arch}-boards)
 do
-install -p -m644 builds/u-boot.img.$(echo $board) -D %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot.img
-install -p -m644 builds/SPL.$(echo $board) -D %{buildroot}%{_datadir}/uboot/$(echo $board)/SPL
+  if [ -f $RPM_BUILD_ROOT%{_datadir}/uboot/$(echo $board)/u-boot-sunxi-with-spl.bin ]; then
+    rm -f $RPM_BUILD_ROOT%{_datadir}/uboot/$(echo $board)/u-boot.*
+  fi
+  if [ -f $RPM_BUILD_ROOT%{_datadir}/uboot/$(echo $board)/MLO ]; then
+    rm -f $RPM_BUILD_ROOT%{_datadir}/uboot/$(echo $board)/u-boot.bin
+  fi
+  if [ -f $RPM_BUILD_ROOT%{_datadir}/uboot/$(echo $board)/SPL ]; then
+    rm -f $RPM_BUILD_ROOT%{_datadir}/uboot/$(echo $board)/u-boot.bin
+  fi
+  if [ -f $RPM_BUILD_ROOT%{_datadir}/uboot/$(echo $board)/u-boot.imx ]; then
+    rm -f $RPM_BUILD_ROOT%{_datadir}/uboot/$(echo $board)/u-boot.bin
+  fi
 done
-
-for board in riotboard udoo_quad wandboard_dl wandboard_quad wandboard_solo
-do
-install -p -m644 builds/u-boot.imx.$(echo $board) -D %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot.imx
-done
-
-# NVidia
-for board in paz00 trimslice jetson-tk1
-do
-install -p -m644 builds/u-boot-nodtb-tegra.bin.$(echo $board) -D %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot-nodtb-tegra.bin
-install -p -m644 builds/u-boot-dtb-tegra.bin.$(echo $board) -D %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot-dtb-tegra.bin
-install -p -m644 builds/u-boot.map.$(echo $board) -D %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot.map
-install -p -m644 builds/u-boot.dtb.$(echo $board) -D %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot.dtb
-done
-
-# Samsung
-#without dtb
-for board in smdkv310
-do
-install -p -m644 builds/$(echo $board)-spl.bin.$(echo $board) -D %{buildroot}%{_datadir}/uboot/$(echo $board)/$(echo $board)-spl.bin
-install -p -m644 builds/u-boot.bin.$(echo $board) -D %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot.bin
-done
-#with dtb
-for board in arndale origen
-do
-install -p -m644 builds/$(echo $board)-spl.bin.$(echo $board) -D %{buildroot}%{_datadir}/uboot/$(echo $board)/$(echo $board)-spl.bin
-install -p -m644 builds/u-boot-dtb.bin.$(echo $board) -D %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot-dtb.bin
-done
-
-install -p -m644 builds/u-boot-dtb.bin.snow -D %{buildroot}%{_datadir}/uboot/snow/u-boot-dtb.bin
-
-# STE
-install -p -m644 builds/u-boot.bin.snowball -D %{buildroot}%{_datadir}/uboot/snowball/u-boot.bin
-
-# TI
-for board in beaglebone beagle panda uevm
-do
-install -p -m644 builds/u-boot.img.$(echo $board) -D %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot.img
-install -p -m644 builds/MLO.$(echo $board) -D %{buildroot}%{_datadir}/uboot/$(echo $board)/MLO
-done
-
 %endif
 
-install -p -m755 tools/mkimage -D %{buildroot}%{_bindir}/mkimage
-install -p -m644 doc/mkimage.1 -D %{buildroot}%{_mandir}/man1/mkimage.1
-install -p -m755 tools/mkenvimage -D %{buildroot}%{_bindir}/mkenvimage
-install -p -m755 tools/dumpimage -D %{buildroot}%{_bindir}/dumpimage
-install -p -m755 tools/fit_info -D %{buildroot}%{_bindir}/fit_info
-install -p -m755 tools/fit_check_sign -D %{buildroot}%{_bindir}/fit_check_sign
-
-%ifarch %{arm}
-install -p -m755 tools/env/fw_printenv -D %{buildroot}%{_bindir}/fw_printenv
-ln -sf fw_printenv -D %{buildroot}%{_bindir}/fw_setenv
-
-install -p -m644 tools/env/fw_env.config -D %{buildroot}%{_sysconfdir}/fw_env.config
+%ifarch aarch64
+for board in $(cat %{_arch}-boards)
+do
+mkdir -p $RPM_BUILD_ROOT%{_datadir}/uboot/$(echo $board)/
+ for file in MLO SPL spl/arndale-spl.bin spl/origen-spl.bin spl/smdkv310-spl.bin u-boot.bin u-boot.dtb u-boot-dtb-tegra.bin u-boot.img u-boot.imx u-boot-nodtb-tegra.bin u-boot-spl.kwb u-boot-sunxi-with-spl.bin spl_sd.img spl_spi.img
+ do
+  if [ -f builds/$(echo $board)/$(echo $file) ]; then
+    install -p -m 0644 builds/$(echo $board)/$(echo $file) $RPM_BUILD_ROOT%{_datadir}/uboot/$(echo $board)/
+  fi
+ done
+done
 %endif
+
+for tool in bmp_logo dumpimage easylogo/easylogo env/fw_printenv fit_check_sign fit_info gdb/gdbcont gdb/gdbsend gen_eth_addr gen_ethaddr_crc img2srec mkenvimage mkimage mksunxiboot ncb proftool sunxi-spl-image-builder ubsha1 xway-swap-bytes
+do
+install -p -m 0755 builds/tools/$tool $RPM_BUILD_ROOT%{_bindir}
+done
+install -p -m 0644 doc/mkimage.1 $RPM_BUILD_ROOT%{_mandir}/man1
+
+install -p -m 0755 builds/tools/env/fw_printenv $RPM_BUILD_ROOT%{_bindir}
+( cd $RPM_BUILD_ROOT%{_bindir}; ln -sf fw_printenv fw_setenv )
+
+install -p -m 0644 tools/env/fw_env.config $RPM_BUILD_ROOT%{_sysconfdir}
+
+# systemd kernel-install script for device tree
+mkdir -p $RPM_BUILD_ROOT/lib/kernel/install.d/
+install -p -m 0755 %{SOURCE5} $RPM_BUILD_ROOT/lib/kernel/install.d/
+
+# Copy sone useful docs over
+mkdir -p builds/docs
+cp -p board/amlogic/p200/README.odroid-c2 builds/docs/README.odroid-c2
+cp -p board/hisilicon/hikey/README builds/docs/README.hikey
+cp -p board/hisilicon/hikey/README builds/docs/README.hikey
+cp -p board/Marvell/db-88f6820-gp/README builds/docs/README.mvebu-db-88f6820
+cp -p board/rockchip/evb_rk3399/README builds/docs/README.evb_rk3399
+cp -p board/solidrun/clearfog/README builds/docs/README.clearfog
+cp -p board/solidrun/mx6cuboxi/README builds/docs/README.mx6cuboxi
+cp -p board/sunxi/README.sunxi64 builds/docs/README.sunxi64
+cp -p board/sunxi/README.nand builds/docs/README.sunxi-nand
+cp -p board/ti/am335x/README builds/docs/README.am335x
+cp -p board/ti/omap5_uevm/README builds/docs/README.omap5_uevm
+cp -p board/udoo/README builds/docs/README.udoo
+cp -p board/wandboard/README builds/docs/README.wandboard
+cp -p board/warp/README builds/docs/README.warp
+cp -p board/warp7/README builds/docs/README.warp7
 
 %files
-%doc README doc/README.imximage doc/README.kwbimage doc/uImage.FIT
-%{_bindir}/fit_check_sign
-%{_bindir}/fit_info
-%{_bindir}/mkimage
-%{_bindir}/mkenvimage
-%{_bindir}/dumpimage
+%doc README doc/imx doc/README.kwbimage doc/README.distro doc/README.gpt
+%doc doc/README.odroid doc/README.rockchip doc/README.uefi doc/uImage.FIT doc/README.arm64
+%doc doc/README.chromium builds/docs/*
+%{_bindir}/*
 %{_mandir}/man1/mkimage.1*
-%ifarch %{arm}
+/lib/kernel/install.d/10-devicetree.install
 %dir %{_datadir}/uboot/
-%endif
-%ifarch %{arm}
-%{_bindir}/fw_printenv
-%{_bindir}/fw_setenv
 %config(noreplace) %{_sysconfdir}/fw_env.config
-%endif
 
-%if 0
+%ifarch aarch64
 %files -n uboot-images-armv8
-%{_datadir}/uboot/vexpress_aemv8a_juno/
+%{_datadir}/uboot/*
 %endif
 
 %ifarch %{arm}
 %files -n uboot-images-armv7
-# AllWinner
-%{_datadir}/uboot/Bananapi/
-%{_datadir}/uboot/Cubieboard/
-%{_datadir}/uboot/Cubieboard2/
-%{_datadir}/uboot/Cubietruck/
-%{_datadir}/uboot/Mele_A1000/
-%{_datadir}/uboot/Mele_A1000G/
-%{_datadir}/uboot/Mini-X/
-%{_datadir}/uboot/Mini-X-1Gb/
-%{_datadir}/uboot/A10-OLinuXino-Lime/
-%{_datadir}/uboot/A10s-OLinuXino-M/
-%{_datadir}/uboot/A13-OLinuXino/
-%{_datadir}/uboot/A13-OLinuXinoM/
-%{_datadir}/uboot/A20-OLinuXino_MICRO/
-# Calxeda
-%{_datadir}/uboot/highbank/
-# FreeScale
-%{_datadir}/uboot/cm_fx6/
-%{_datadir}/uboot/riotboard/
-%{_datadir}/uboot/wandboard_dl/
-%{_datadir}/uboot/wandboard_quad/
-%{_datadir}/uboot/wandboard_solo/
-%{_datadir}/uboot/udoo_quad/
-# NVidia
-%{_datadir}/uboot/jetson-tk1/
-%{_datadir}/uboot/paz00/
-%{_datadir}/uboot/trimslice/
-# Samsung
-%{_datadir}/uboot/arndale/
-%{_datadir}/uboot/smdkv310/
-%{_datadir}/uboot/snow/
-# STE
-%{_datadir}/uboot/snowball/
-# TI
-%{_datadir}/uboot/beagle/
-%{_datadir}/uboot/beaglebone/
-%{_datadir}/uboot/origen/
-%{_datadir}/uboot/panda/
-%{_datadir}/uboot/uevm/
+%{_datadir}/uboot/*
 %endif
