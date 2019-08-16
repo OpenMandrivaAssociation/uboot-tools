@@ -41,7 +41,7 @@ BuildRequires:  flex bison
 BuildRequires:  openssl-devel
 BuildRequires:  python2-devel
 BuildRequires:  python2-setuptools
-#BuildRequires:  python2-libfdt
+BuildRequires:  python2-libfdt
 BuildRequires:  python2-pyelftools
 BuildRequires:  SDL2-devel
 BuildRequires:  swig
