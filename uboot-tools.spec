@@ -1,4 +1,5 @@
 #global candidate rc4
+%define _disable_lto %nil
 
 Name:      uboot-tools
 Version:   2019.07
