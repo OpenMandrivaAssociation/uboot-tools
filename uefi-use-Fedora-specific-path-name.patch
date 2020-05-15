@@ -29,7 +29,7 @@ index f4b3b62fca..2dc8be9815 100644
  		"fi;"                                                     \
  		"load ${devtype} ${devnum}:${distro_bootpart} "           \
 -			"${kernel_addr_r} efi/boot/"BOOTEFI_NAME"; "      \
-+			"${kernel_addr_r} efi/openmandriva/"BOOTEFI_NAME"; "      \
++			"${kernel_addr_r} efi/fedora/"BOOTEFI_NAME"; "      \
  		"if fdt addr ${fdt_addr_r}; then "                        \
  			"bootefi ${kernel_addr_r} ${fdt_addr_r};"         \
  		"else "                                                   \
@@ -38,10 +38,10 @@ index f4b3b62fca..2dc8be9815 100644
  	"scan_dev_for_efi="                                               \
  		"if test -e ${devtype} ${devnum}:${distro_bootpart} "     \
 -					"efi/boot/"BOOTEFI_NAME"; then "  \
-+					"efi/openmandriva/"BOOTEFI_NAME"; then "  \
++					"efi/fedora/"BOOTEFI_NAME"; then "  \
  				"echo Found EFI removable media binary "  \
 -					"efi/boot/"BOOTEFI_NAME"; "       \
-+					"efi/openmandriva/"BOOTEFI_NAME"; "       \
++					"efi/fedora/"BOOTEFI_NAME"; "       \
  				"run scan_dev_for_dtb; "                  \
  				"echo EFI LOAD FAILED: continuing...; "   \
  		"fi; "                                                    \
