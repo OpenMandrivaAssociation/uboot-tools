@@ -1,44 +1,36 @@
 %global candidate rc2
 
 Name:      uboot-tools
-Version:   2020.07
-Release:   0.2%{?candidate:.%{candidate}}%{?dist}
+Version:   2020.10
+Release:   0.1%{?candidate:.%{candidate}}
 Summary:   U-Boot utilities
 License:   GPLv2+ BSD LGPL-2.1+ LGPL-2.0+
 URL:       http://www.denx.de/wiki/U-Boot
 
 Source0:   ftp://ftp.denx.de/pub/u-boot/u-boot-%{version}%{?candidate:-%{candidate}}.tar.bz2
-Source1:   arm-boards
-Source2:   arm-chromebooks
-Source3:   aarch64-boards
-Source4:   aarch64-chromebooks
-Source5:   10-devicetree.install
+Source1:   https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/arm-boards
+Source2:   https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/arm-chromebooks
+Source3:   https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/aarch64-boards
+Source4:   https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/aarch64-chromebooks
+Source5:   https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/10-devicetree.install
 
 # Fedoraisms patches
 # Needed to find DT on boot partition that's not the first partition
-Patch1:    uefi-distro-load-FDT-from-any-partition-on-boot-device.patch
-# Needed due to issues with shim
-Patch2:    uefi-use-Fedora-specific-path-name.patch
+Patch1:    https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/uefi-distro-load-FDT-from-any-partition-on-boot-device.patch
 
 # Board fixes and enablement
-Patch4:    usb-kbd-fixes.patch
-Patch5:    dragonboard-fixes.patch
+Patch4:    https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/usb-kbd-fixes.patch
+Patch5:    https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/dragonboard-fixes.patch
 
 # Tegra improvements
-Patch10:   arm-tegra-define-fdtfile-option-for-distro-boot.patch
-Patch11:   arm-add-BOOTENV_EFI_SET_FDTFILE_FALLBACK-for-tegra186-be.patch
+Patch10:   https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/arm-tegra-define-fdtfile-option-for-distro-boot.patch
+Patch11:   https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/arm-add-BOOTENV_EFI_SET_FDTFILE_FALLBACK-for-tegra186-be.patch
 # Rockchips improvements
-Patch12:   arm-rk3399-enable-rng-on-rock960-and-firefly3399.patch
-Patch13:   initial-support-for-the-Pinebook-Pro-laptop-from.patch
-Patch14:   rockpro64-limit-speed-on-mSD-slot.patch
+Patch12:   https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/arm-rk3399-enable-rng-on-rock960-and-firefly3399.patch
 # AllWinner improvements
-Patch15:   AllWinner-Pine64-bits.patch
+Patch15:   https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/AllWinner-Pine64-bits.patch
 # RPi4
-Patch16:   USB-host-support-for-Raspberry-Pi-4-board-64-bit.patch
-Patch17:   usb-xhci-Load-Raspberry-Pi-4-VL805-s-firmware.patch
-Patch18:   rpi-Enable-using-the-DT-provided-by-the-Raspberry-Pi.patch
-Patch19:   rpi4-enable-ARCH_FIXUP_FDT_MEMORY.patch
-Patch20:   rpi4-Enable-support-for-the-XHCI-controller-on-RPI.patch
+Patch18:   https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/rpi-Enable-using-the-DT-provided-by-the-Raspberry-Pi.patch
 
 BuildRequires:  bc
 BuildRequires:  dtc
@@ -47,7 +39,7 @@ BuildRequires:  python3-devel
 BuildRequires:  python3-setuptools
 BuildRequires:  python3-libfdt
 BuildRequires:  flex bison
-BuildRequires:  openssl-devel
+BuildRequires:  pkgconfig(openssl)
 BuildRequires:  SDL2-devel
 BuildRequires:  swig
 %ifarch %{armx}
@@ -198,8 +190,6 @@ install -p -m 0755 %{SOURCE5} $RPM_BUILD_ROOT/lib/kernel/install.d/
 
 # Copy sone useful docs over
 mkdir -p builds/docs
-cp -p board/amlogic/p200/README.odroid-c2 builds/docs/README.odroid-c2
-cp -p board/hisilicon/hikey/README builds/docs/README.hikey
 cp -p board/hisilicon/hikey/README builds/docs/README.hikey
 cp -p board/Marvell/db-88f6820-gp/README builds/docs/README.mvebu-db-88f6820
 cp -p board/rockchip/evb_rk3399/README builds/docs/README.evb_rk3399
