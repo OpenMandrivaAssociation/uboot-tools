@@ -30,7 +30,6 @@ Patch12:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/rk3399-Pine
 # Fixes for Allwinner network issues
 Patch13:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/0001-arm-dts-allwinner-sync-from-linux-for-RGMII-RX-TX-de.patch
 
-%if 0
 BuildRequires:	bc
 BuildRequires:	dtc
 BuildRequires:	make
@@ -54,7 +53,6 @@ Requires:	systemd
 %ifarch %{armx}
 Obsoletes:	uboot-images-elf < 2019.07
 Provides:	uboot-images-elf < 2019.07
-%endif
 %endif
 
 %description
