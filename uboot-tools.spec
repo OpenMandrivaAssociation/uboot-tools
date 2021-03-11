@@ -12,7 +12,6 @@ Source1:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/arm-boards
 Source2:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/arm-chromebooks
 Source3:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/aarch64-boards
 Source4:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/aarch64-chromebooks
-Source5:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/10-devicetree.install
 
 # Fedoraisms patches
 # Needed to find DT on boot partition that's not the first partition
@@ -20,10 +19,6 @@ Patch1:		https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/uefi-distro
 
 # RPi - uses RPI firmware device tree for HAT support
 Patch3:		https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/rpi-Enable-using-the-DT-provided-by-the-Raspberry-Pi.patch
-
-# Board fixes and enablement
-Patch4:		https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/usb-kbd-fixes.patch
-Patch5:		https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/dragonboard-fixes.patch
 
 # Board fixes and enablement
 # AllWinner improvements
@@ -35,6 +30,7 @@ Patch12:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/rk3399-Pine
 # Fixes for Allwinner network issues
 Patch13:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/0001-arm-dts-allwinner-sync-from-linux-for-RGMII-RX-TX-de.patch
 
+%if 0
 BuildRequires:	bc
 BuildRequires:	dtc
 BuildRequires:	make
@@ -58,6 +54,7 @@ Requires:	systemd
 %ifarch %{armx}
 Obsoletes:	uboot-images-elf < 2019.07
 Provides:	uboot-images-elf < 2019.07
+%endif
 %endif
 
 %description
@@ -197,11 +194,7 @@ install -p -m 0755 builds/tools/env/fw_printenv %{buildroot}%{_bindir}
 
 install -p -m 0644 tools/env/fw_env.config %{buildroot}%{_sysconfdir}
 
-# systemd kernel-install script for device tree
-mkdir -p %{buildroot}/lib/kernel/install.d/
-install -p -m 0755 %{SOURCE5} %{buildroot}/lib/kernel/install.d/
-
-# Copy sone useful docs over
+# Copy some useful docs over
 mkdir -p builds/docs
 cp -p board/hisilicon/hikey/README builds/docs/README.hikey
 cp -p board/Marvell/db-88f6820-gp/README builds/docs/README.mvebu-db-88f6820
@@ -223,7 +216,6 @@ cp -p board/warp7/README builds/docs/README.warp7
 %doc doc/README.chromium builds/docs/*
 %{_bindir}/*
 %{_mandir}/man1/mkimage.1*
-/lib/kernel/install.d/10-devicetree.install
 %dir %{_datadir}/uboot/
 %config(noreplace) %{_sysconfdir}/fw_env.config
 
