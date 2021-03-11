@@ -182,8 +182,7 @@ done
 
 for tool in bmp_logo dumpimage env/fw_printenv fit_check_sign fit_info gdb/gdbcont gdb/gdbsend gen_eth_addr gen_ethaddr_crc img2srec mkenvimage mkimage mksunxiboot ncb proftool sunxi-spl-image-builder ubsha1 xway-swap-bytes kwboot
 do
-do
-install -p -m 0755 builds/tools/$tool %{buildroot}%{_bindir}
+    install -p -m 0755 builds/tools/$tool %{buildroot}%{_bindir}
 done
 install -p -m 0644 doc/mkimage.1 %{buildroot}%{_mandir}/man1
 
