@@ -129,7 +129,7 @@ mkdir -p %{buildroot}%{_mandir}/man1
 mkdir -p %{buildroot}%{_datadir}/uboot/
 
 %ifarch aarch64
-for board in $(cat %{_arch}-boards)
+for board in $(ls builds)
 do
 mkdir -p %{buildroot}%{_datadir}/uboot/$(echo $board)/
  for file in u-boot.bin u-boot.dtb u-boot.img u-boot-dtb.img u-boot.itb u-boot-sunxi-with-spl.bin u-boot-rockchip.bin idbloader.img spl/boot.bin spl/sunxi-spl.bin
@@ -142,7 +142,7 @@ done
 %endif
 
 %ifarch %{arm}
-for board in $(cat %{_arch}-boards)
+for board in $(ls builds)
 do
 mkdir -p %{buildroot}%{_datadir}/uboot/$(echo $board)/
  for file in MLO SPL spl/arndale-spl.bin spl/origen-spl.bin spl/*spl.bin u-boot.bin u-boot.dtb u-boot-dtb-tegra.bin u-boot.img u-boot.imx u-boot-spl.kwb u-boot-rockchip.bin u-boot-sunxi-with-spl.bin spl/boot.bin
@@ -155,7 +155,7 @@ mkdir -p %{buildroot}%{_datadir}/uboot/$(echo $board)/
 done
 
 # Bit of a hack to remove binaries we don't use as they're large
-for board in $(cat %{_arch}-boards)
+for board in $(ls builds)
 do
   if [ -f %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot-sunxi-with-spl.bin ]; then
     rm -f %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot.*
