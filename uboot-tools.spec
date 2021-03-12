@@ -2,7 +2,7 @@
 
 Name:		uboot-tools
 Version:	2021.04
-Release:	0.1%{?candidate:.%{candidate}}
+Release:	0.2%{?candidate:.%{candidate}}
 Summary:	U-Boot utilities
 License:	GPLv2+ BSD LGPL-2.1+ LGPL-2.0+
 URL:		http://www.denx.de/wiki/U-Boot
@@ -30,6 +30,9 @@ Patch12:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/rk3399-Pine
 # Fixes for Allwinner network issues
 Patch13:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/0001-arm-dts-allwinner-sync-from-linux-for-RGMII-RX-TX-de.patch
 
+# Misc patches
+# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=973323
+Patch100:	u-boot-2021.04-rc3-fix-booting-on-rk3399.patch
 BuildRequires:	bc
 BuildRequires:	dtc
 BuildRequires:	make
