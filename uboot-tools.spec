@@ -114,6 +114,9 @@ do
   fi
   # End ATF
   %make_build $(echo $board)_defconfig O=builds/$(echo $board)/
+# (tpg) add our distribution mark
+  sed -i -e '/^CONFIG_IDENT_STRING=".*"/ s/"$/  %{distribution}"/' builds/$(echo $board)/.config
+
   %make_build HOSTCC="%{__cc} %{optflags}" CROSS_COMPILE="" %{?_smp_mflags} V=1 O=builds/$(echo $board)/
 done
 
