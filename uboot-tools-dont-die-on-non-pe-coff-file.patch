@@ -1,12 +1,12 @@
 diff -Naur a/lib/efi_loader/efi_image_loader.c b/lib/efi_loader/efi_image_loader.c
 --- a/lib/efi_loader/efi_image_loader.c	2021-03-02 03:46:41.000000000 +0000
-+++ b/lib/efi_loader/efi_image_loader.c	2021-03-15 16:40:30.768024788 +0000
++++ b/lib/efi_loader/efi_image_loader.c	2021-03-15 17:03:33.265561718 +0000
 @@ -748,7 +748,7 @@
  	ret = efi_check_pe(efi, efi_size, (void **)&nt);
  	if (ret != EFI_SUCCESS) {
  		log_err("Not a PE-COFF file\n");
 -		return EFI_LOAD_ERROR;
-+#		return EFI_LOAD_ERROR;
++/*		return EFI_LOAD_ERROR; */
  	}
  
  	for (i = 0; machines[i]; i++)
