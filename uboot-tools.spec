@@ -33,6 +33,7 @@ Patch13:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/0001-arm-dt
 # Misc patches
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=973323
 Patch100:	u-boot-2021.04-rc3-fix-booting-on-rk3399.patch
+Patch101:	uboot-tools-dont-die-on-non-pe-coff-file.patch
 BuildRequires:	bc
 BuildRequires:	dtc
 BuildRequires:	make
