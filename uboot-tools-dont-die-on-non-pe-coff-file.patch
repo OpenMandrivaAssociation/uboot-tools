@@ -1,6 +1,6 @@
 diff -Naur a/lib/efi_loader/efi_image_loader.c b/lib/efi_loader/efi_image_loader.c
 --- a/lib/efi_loader/efi_image_loader.c	2021-03-02 03:46:41.000000000 +0000
-+++ b/lib/efi_loader/efi_image_loader.c	2021-03-15 17:03:33.265561718 +0000
++++ b/lib/efi_loader/efi_image_loader.c	2021-03-15 18:01:17.187395038 +0000
 @@ -748,7 +748,7 @@
  	ret = efi_check_pe(efi, efi_size, (void **)&nt);
  	if (ret != EFI_SUCCESS) {
@@ -10,3 +10,21 @@ diff -Naur a/lib/efi_loader/efi_image_loader.c b/lib/efi_loader/efi_image_loader
  	}
  
  	for (i = 0; machines[i]; i++)
+@@ -760,7 +760,7 @@
+ 	if (!supported) {
+ 		log_err("Machine type 0x%04x is not supported\n",
+ 			nt->FileHeader.Machine);
+-		return EFI_LOAD_ERROR;
++/*		return EFI_LOAD_ERROR; */
+ 	}
+ 
+ 	num_sections = nt->FileHeader.NumberOfSections;
+@@ -770,7 +770,7 @@
+ 	if (efi_size < ((void *)sections + sizeof(sections[0]) * num_sections
+ 			- efi)) {
+ 		log_err("Invalid number of sections: %d\n", num_sections);
+-		return EFI_LOAD_ERROR;
++/*		return EFI_LOAD_ERROR; /*
+ 	}
+ 
+ 	/* Authenticate an image */
