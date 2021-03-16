@@ -2,7 +2,7 @@
 
 Name:		uboot-tools
 Version:	2021.04
-Release:	0.1%{?candidate:.%{candidate}}
+Release:	0%{?candidate:.%{candidate}.}3
 Summary:	U-Boot utilities
 License:	GPLv2+ BSD LGPL-2.1+ LGPL-2.0+
 URL:		http://www.denx.de/wiki/U-Boot
