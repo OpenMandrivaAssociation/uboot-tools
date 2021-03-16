@@ -1,4 +1,4 @@
-%global candidate rc3
+%global candidate rc4
 
 Name:		uboot-tools
 Version:	2021.04
