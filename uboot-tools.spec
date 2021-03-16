@@ -2,7 +2,7 @@
 
 Name:		uboot-tools
 Version:	2021.04
-Release:	0.2%{?candidate:.%{candidate}}
+Release:	0.1%{?candidate:.%{candidate}}
 Summary:	U-Boot utilities
 License:	GPLv2+ BSD LGPL-2.1+ LGPL-2.0+
 URL:		http://www.denx.de/wiki/U-Boot
@@ -33,6 +33,7 @@ Patch13:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/0001-arm-dt
 # Misc patches
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=973323
 Patch100:	u-boot-2021.04-rc3-fix-booting-on-rk3399.patch
+
 BuildRequires:	bc
 BuildRequires:	dtc
 BuildRequires:	make
