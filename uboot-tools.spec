@@ -2,7 +2,7 @@
 
 Name:		uboot-tools
 Version:	2021.04
-Release:	0%{?candidate:.%{candidate}.}3
+Release:	0%{?candidate:.%{candidate}.}4
 Summary:	U-Boot utilities
 License:	GPLv2+ BSD LGPL-2.1+ LGPL-2.0+
 URL:		http://www.denx.de/wiki/U-Boot
@@ -13,9 +13,8 @@ Source2:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/arm-chromeb
 Source3:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/aarch64-boards
 Source4:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/aarch64-chromebooks
 
-# Fedoraisms patches
-# Needed to find DT on boot partition that's not the first partition
-Patch1:		https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/uefi-distro-load-FDT-from-any-partition-on-boot-device.patch
+# (tpg) add more paths to check for dtb files
+Patch1:		u-boot-2021.04-rc4-add-more-directories-to-efi_dtb_prefixes.patch
 
 # RPi - uses RPI firmware device tree for HAT support
 Patch3:		https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/rpi-Enable-using-the-DT-provided-by-the-Raspberry-Pi.patch
@@ -118,8 +117,11 @@ do
   fi
   # End ATF
   %make_build $(echo $board)_defconfig O=builds/$(echo $board)/
-# (tpg) add our distribution mark
+# (tpg) add our distribution mark and some safe default configs
   sed -i -e '/^CONFIG_IDENT_STRING=".*"/ s/"$/  %{distribution}"/' builds/$(echo $board)/.config
+  sed -i -e 's/.*CONFIG_SERIAL_PRESENT.*$/CONFIG_SERIAL_PRESENT=y/g' builds/$(echo $board)/.config
+  sed -i -e 's/.*CONFIG_GZIP.*$/CONFIG_GZIP=y/g' builds/$(echo $board)/.config
+  sed -i -e 's/.*CONFIG_CMD_UNZIP.*$/CONFIG_CMD_UNZIP=y/g' builds/$(echo $board)/.config
 
   %make_build HOSTCC="%{__cc} %{optflags}" CROSS_COMPILE="" %{?_smp_mflags} V=1 O=builds/$(echo $board)/
 done
