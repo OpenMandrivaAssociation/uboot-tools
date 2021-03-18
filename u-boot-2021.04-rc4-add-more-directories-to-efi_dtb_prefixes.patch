@@ -7,7 +7,7 @@ diff -Naur u-boot-2021.04-rc4/include/config_distro_bootcmd.h u-boot-2021.04-rc4
  	\
 -	"efi_dtb_prefixes=/ /dtb/ /dtb/current/\0"                        \
 +	"efi_dtb_prefixes=/ /dtb/ /dtb/current/ "                         \
-+		"/boot/ /boot/dtb/ /boot/dtb/current/\0"
++		"/boot/ /boot/dtb/ /boot/dtb/current/\0"                  \
  	"scan_dev_for_efi="                                               \
  		"setenv efi_fdtfile ${fdtfile}; "                         \
  		BOOTENV_EFI_SET_FDTFILE_FALLBACK                          \
