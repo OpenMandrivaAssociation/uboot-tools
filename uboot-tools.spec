@@ -1,8 +1,8 @@
-%global candidate rc4
+%undefine candidate
 
 Name:		uboot-tools
 Version:	2021.04
-Release:	0%{?candidate:.%{candidate}.}4
+Release:	%{?candidate:0.%{candidate}.}1
 Summary:	U-Boot utilities
 License:	GPLv2+ BSD LGPL-2.1+ LGPL-2.0+
 URL:		http://www.denx.de/wiki/U-Boot
@@ -32,6 +32,11 @@ Patch13:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/0001-arm-dt
 # Misc patches
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=973323
 Patch100:	u-boot-2021.04-rc3-fix-booting-on-rk3399.patch
+Patch101:	https://raw.githubusercontent.com/armbian/build/master/patch/u-boot/u-boot-rockchip/zzz-usb-otg-fix.patch
+Patch103:	https://raw.githubusercontent.com/armbian/build/master/patch/u-boot/u-boot-rockchip64-edge/add-u-boot-delay-rockpro64.patch
+Patch104:	https://raw.githubusercontent.com/armbian/build/master/patch/u-boot/u-boot-rockchip64-edge/add-u-boot-setexpr-rockpro64.patch
+Patch105:	https://raw.githubusercontent.com/armbian/build/master/patch/u-boot/u-boot-rockchip64-mainline/general-prioritize-sd.patch
+Patch106:	https://raw.githubusercontent.com/armbian/build/master/patch/u-boot/u-boot-rockchip64-mainline/rk3399-enable-stable-mac.patch
 
 BuildRequires:	bc
 BuildRequires:	dtc
