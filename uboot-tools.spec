@@ -1,7 +1,7 @@
-%undefine candidate
+%define candidate rc3
 
 Name:		uboot-tools
-Version:	2021.04
+Version:	2021.07
 Release:	%{?candidate:0.%{candidate}.}1
 Summary:	U-Boot utilities
 License:	GPLv2+ BSD LGPL-2.1+ LGPL-2.0+
@@ -25,9 +25,8 @@ Patch10:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/AllWinner-P
 # TI fixes
 Patch11:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/0001-Fix-BeagleAI-detection.patch
 # Rockchips improvements
-Patch12:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/rk3399-Pinebook-pro-EDP-support.patch
-# Fixes for Allwinner network issues
-Patch13:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/0001-arm-dts-allwinner-sync-from-linux-for-RGMII-RX-TX-de.patch
+Patch12:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/phy-rockchip-inno-usb2-fix-hang-when-multiple-controllers-exit.patch
+Patch13:	https://src.fedoraproject.org/rpms/uboot-tools/raw/master/f/rockchip-fix-mmc-numbering.patch
 
 # Misc patches
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=973323
@@ -57,7 +56,6 @@ BuildRequires:	arm-trusted-firmware-armv8
 %endif
 
 Requires:	dtc
-Requires:	systemd
 %ifarch %{armx}
 Obsoletes:	uboot-images-elf < 2019.07
 Provides:	uboot-images-elf < 2019.07
@@ -94,6 +92,10 @@ cp %{SOURCE1} %{SOURCE2} %{SOURCE3} %{SOURCE4} .
 
 %build
 mkdir builds
+
+%make_build HOSTCC="%{__cc} %{optflags}" CROSS_COMPILE="" tools-only_defconfig O=builds/
+%make_build HOSTCC="%{__cc} %{optflags}" CROSS_COMPILE="" tools-all O=builds/
+
 %ifarch aarch64 %{arm}
 for board in $(cat %{_arch}-boards)
 do
@@ -121,6 +123,7 @@ do
     cp /usr/share/arm-trusted-firmware/rk3399/* builds/$(echo $board)/
   fi
   # End ATF
+
   %make_build $(echo $board)_defconfig O=builds/$(echo $board)/
 # (tpg) add our distribution mark and some safe default configs
   sed -i -e '/^CONFIG_IDENT_STRING=".*"/ s/"$/  %{distribution}"/' builds/$(echo $board)/.config
@@ -128,13 +131,30 @@ do
   sed -i -e 's/.*CONFIG_GZIP.*$/CONFIG_GZIP=y/g' builds/$(echo $board)/.config
   sed -i -e 's/.*CONFIG_CMD_UNZIP.*$/CONFIG_CMD_UNZIP=y/g' builds/$(echo $board)/.config
 
-  %make_build HOSTCC="%{__cc} %{optflags}" CROSS_COMPILE="" %{?_smp_mflags} V=1 O=builds/$(echo $board)/
+  %make_build HOSTCC="%{__cc} %{optflags}" CROSS_COMPILE="" V=1 O=builds/$(echo $board)/
+done
+
+  # build spi images for rockchip boards with SPI flash
+  rkspi=(evb-rk3399 khadas-edge-captain-rk3399 khadas-edge-rk3399 khadas-edge-v-rk3399 nanopc-t4-rk3399 pinebook-pro-rk3399 rockpro64-rk3399)
+  if [[ " ${rkspi[*]} " == *" $board "* ]]; then
+    echo "Board: $board with SPI flash"
+    builds/$(echo $board)/tools/mkimage -n rk3399 -T rkspi -d builds/$(echo $board)/tpl/u-boot-tpl.bin:builds/$(echo $board)/spl/u-boot-spl.bin builds/$(echo $board)/idbloader.spi
+  fi
+  # build spi, and uart images for mvebu boards
+  mvebu=(clearfog helios4 turris_omnia)
+  if [[ "  ${mvebu[*]} " == *" $board "* ]]; then
+    for target in spi uart
+    do
+      echo "Board: $board Target: $target"
+      sed -i -e '/CONFIG_MVEBU_SPL_BOOT_DEVICE_/d' configs/$(echo $board)_defconfig
+      echo CONFIG_MVEBU_SPL_BOOT_DEVICE_${target^^}=y >> configs/$(echo $board)_defconfig
+      make $(echo $board)_defconfig O=builds/$(echo $board-$target)/
+      %make_build HOSTCC="%{__cc} $RPM_OPT_FLAGS" CROSS_COMPILE="" O=builds/$(echo $board-$target)/
+    done
+  fi
 done
 
 %endif
-
-%make_build HOSTCC="%{__cc} %{optflags}" %{?_smp_mflags} CROSS_COMPILE="" tools-only_defconfig V=1 O=builds/
-%make_build HOSTCC="%{__cc} %{optflags}" %{?_smp_mflags} CROSS_COMPILE="" tools-all V=1 O=builds/
 
 %install
 mkdir -p %{buildroot}%{_bindir}
@@ -145,8 +165,8 @@ mkdir -p %{buildroot}%{_datadir}/uboot/
 %ifarch aarch64
 for board in $(ls builds)
 do
-mkdir -p %{buildroot}%{_datadir}/uboot/$(echo $board)/
- for file in u-boot.bin u-boot.dtb u-boot.img u-boot-dtb.img u-boot.itb u-boot-sunxi-with-spl.bin u-boot-rockchip.bin idbloader.img spl/boot.bin spl/sunxi-spl.bin
+ mkdir -p %{buildroot}%{_datadir}/uboot/$(echo $board)/
+ for file in u-boot.bin u-boot.dtb u-boot.img u-boot-dtb.img u-boot.itb u-boot-sunxi-with-spl.bin u-boot-rockchip.bin idbloader.img idbloader.spi spl/boot.bin spl/sunxi-spl.bin
  do
   if [ -f builds/$(echo $board)/$(echo $file) ]; then
     install -p -m 0644 builds/$(echo $board)/$(echo $file) %{buildroot}%{_datadir}/uboot/$(echo $board)/
@@ -158,52 +178,52 @@ done
 %ifarch %{arm}
 for board in $(ls builds)
 do
-mkdir -p %{buildroot}%{_datadir}/uboot/$(echo $board)/
+ mkdir -p %{buildroot}%{_datadir}/uboot/$(echo $board)/
  for file in MLO SPL spl/arndale-spl.bin spl/origen-spl.bin spl/*spl.bin u-boot.bin u-boot.dtb u-boot-dtb-tegra.bin u-boot.img u-boot.imx u-boot-spl.kwb u-boot-rockchip.bin u-boot-sunxi-with-spl.bin spl/boot.bin
  do
   if [ -f builds/$(echo $board)/$(echo $file) ]; then
     install -p -m 0644 builds/$(echo $board)/$(echo $file) %{buildroot}%{_datadir}/uboot/$(echo $board)/
   fi
  done
-
 done
+%endif
 
 # Bit of a hack to remove binaries we don't use as they're large
+%ifarch aarch64 %{arm}
 for board in $(ls builds)
 do
+  rm -f %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot.dtb
   if [ -f %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot-sunxi-with-spl.bin ]; then
-    rm -f %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot.*
+    rm -f %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot{,-dtb}.*
   fi
-
   if [ -f %{buildroot}%{_datadir}/uboot/$(echo $board)/MLO ]; then
     rm -f %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot.bin
   fi
-
   if [ -f %{buildroot}%{_datadir}/uboot/$(echo $board)/SPL ]; then
     rm -f %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot.bin
   fi
-
   if [ -f %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot.imx ]; then
     rm -f %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot.bin
   fi
-
   if [ -f %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot-spl.kwb ]; then
     rm -f %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot.*
     rm -f %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot-spl.bin
+  fi
+  if [ -f %{buildroot}%{_datadir}/uboot/$(echo $board)/idbloader.img ]; then
+    rm -f %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot.bin
+    rm -f %{buildroot}%{_datadir}/uboot/$(echo $board)/u-boot{,-dtb}.img
   fi
 done
 %endif
 
 for tool in bmp_logo dumpimage env/fw_printenv fit_check_sign fit_info gdb/gdbcont gdb/gdbsend gen_eth_addr gen_ethaddr_crc img2srec mkenvimage mkimage mksunxiboot ncb proftool sunxi-spl-image-builder ubsha1 xway-swap-bytes kwboot
 do
-    install -p -m 0755 builds/tools/$tool %{buildroot}%{_bindir}
+install -p -m 0755 builds/tools/$tool %{buildroot}%{_bindir}
 done
 install -p -m 0644 doc/mkimage.1 %{buildroot}%{_mandir}/man1
 
 install -p -m 0755 builds/tools/env/fw_printenv %{buildroot}%{_bindir}
 ( cd %{buildroot}%{_bindir}; ln -sf fw_printenv fw_setenv )
-
-install -p -m 0644 tools/env/fw_env.config %{buildroot}%{_sysconfdir}
 
 # Copy some useful docs over
 mkdir -p builds/docs
@@ -223,12 +243,12 @@ cp -p board/warp7/README builds/docs/README.warp7
 
 %files
 %doc README doc/README.kwbimage doc/README.distro doc/README.gpt
-%doc doc/README.odroid doc/README.rockchip doc/uefi doc/uImage.FIT doc/arch/arm64.rst
-%doc doc/README.chromium builds/docs/*
+%doc doc/README.odroid doc/README.rockchip doc/develop/uefi doc/uImage.FIT doc/arch/arm64.rst
+%doc doc/chromium builds/docs/*
+%doc doc/board/amlogic/ doc/board/rockchip/
 %{_bindir}/*
 %{_mandir}/man1/mkimage.1*
 %dir %{_datadir}/uboot/
-%config(noreplace) %{_sysconfdir}/fw_env.config
 
 %ifarch aarch64
 %files -n uboot-images-armv8
