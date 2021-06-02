@@ -152,8 +152,6 @@ done
       %make_build HOSTCC="%{__cc} $RPM_OPT_FLAGS" CROSS_COMPILE="" O=builds/$(echo $board-$target)/
     done
   fi
-done
-
 %endif
 
 %install
