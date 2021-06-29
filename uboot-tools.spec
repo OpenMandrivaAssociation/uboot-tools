@@ -1,4 +1,4 @@
-%define candidate rc4
+%define candidate rc5
 
 Name:		uboot-tools
 Version:	2021.07
@@ -135,7 +135,7 @@ do
 done
 
   # build spi images for rockchip boards with SPI flash
-  rkspi=(evb-rk3399 khadas-edge-captain-rk3399 khadas-edge-rk3399 khadas-edge-v-rk3399 nanopc-t4-rk3399 pinebook-pro-rk3399 rockpro64-rk3399)
+  rkspi=(evb-rk3399 khadas-edge-captain-rk3399 khadas-edge-rk3399 khadas-edge-v-rk3399 nanopc-t4-rk3399 pinebook-pro-rk3399 rockpro64-rk3399 roc-pc-mezzanine-rk3399 roc-pc-rk3399)
   if [[ " ${rkspi[*]} " == *" $board "* ]]; then
     echo "Board: $board with SPI flash"
     builds/$(echo $board)/tools/mkimage -n rk3399 -T rkspi -d builds/$(echo $board)/tpl/u-boot-tpl.bin:builds/$(echo $board)/spl/u-boot-spl.bin builds/$(echo $board)/idbloader.spi
