@@ -1,4 +1,4 @@
-%define candidate rc5
+%undefine candidate
 
 Name:		uboot-tools
 Version:	2021.07
